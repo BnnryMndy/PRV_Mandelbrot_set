@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -11,13 +12,15 @@ namespace PRV_Mandelbrot_set
     class Mandelbrot
     {
         Complex c;
+        public Stopwatch stopwatch = new Stopwatch();
         Complex z = 0;
         double x, y;
         int width, height;
         int xCenter, yCenter;
         public Bitmap picture;// = new Bitmap();
-        int maxIterations = 300;
+        int maxIterations = 250;
         int infinityBorder = 4;
+        int color = 255;
 
         public Mandelbrot(int width, int height)
         {
@@ -32,13 +35,17 @@ namespace PRV_Mandelbrot_set
         
         public Complex InMandelbrotSet(Complex c)
         {
+            color = 255;
             z = Complex.Zero;
 
             for (int i = 0; i < maxIterations; i++)
             {
                 z = Complex.Pow(z, 2) + c;
 
-                if (z.Magnitude > infinityBorder) break;
+                if (z.Magnitude > infinityBorder) {
+                    color = i;
+                    break;
+                } 
             }
 
             return z;
@@ -46,25 +53,66 @@ namespace PRV_Mandelbrot_set
 
         public void toPicture()
         {
-            int startX = 0 - xCenter;
-            int startY = 0 - yCenter;
+            double startX = 0 - xCenter / (double)width;
+            double startY = 0 - yCenter / (double)width;
 
             for (int i = 0; i < width; i++)
             {
                 for (int j = 0; j < height; j++)
                 {
-                    double relX = ((double)i + (double)startX) / (double)width ;
-                    double relY = ((double)j + (double)startY) / (double)height ;
+                    double relX = ((double)i / (double)width  + (double)startX) * 3;
+                    double relY = ((double)j / (double)height + (double)startY + (double)startY) * 2;
 
                     Complex c = InMandelbrotSet(new Complex(relX, relY));
 
-                    if (Math.Abs(c.Magnitude) > 2) picture.SetPixel(i, j, Color.White);
+                    if (Math.Abs(c.Magnitude) > 2) picture.SetPixel(i, j, Color.FromArgb(color % 2 * 128, color % 4 * 33, color % 2 *66));
                     else picture.SetPixel(i, j, Color.Black);
                 }
             }
         }
 
-     
+        public void AsyncPicture(int threads)
+        {
+            
+            double startX = 0 - xCenter / (double)width;
+            double startY = 0 - yCenter / (double)width;
 
+            List<Task> tasks = new List<Task>();
+            stopwatch.Start();
+            for (int i = 0; i < threads; i++)
+            {
+                tasks.Add(new Task(new Action(()=> {
+                    asyncTask((width / threads) * i + 1, (width / threads) * (i + 1), startX, startY);
+                })));
+            }
+            
+            foreach (Task task in tasks)
+            {
+                task.Start();
+            }
+
+            Task.WaitAll(tasks.ToArray());
+            stopwatch.Stop();
+        }
+
+        public void asyncTask(int from, int to, double startX, double startY)
+        {
+            for (int i = from; i < to; i++)
+            {
+                for (int j = 0; j < height; j++)
+                {
+                    double relX = ((double)i / (double)width + (double)startX) * 3;
+                    double relY = ((double)j / (double)height + (double)startY) * 2;
+
+                    Complex c = InMandelbrotSet(new Complex(relX, relY));
+
+                    if (i < width)
+                    {
+                        if (Math.Abs(c.Magnitude) > 2) picture.SetPixel(i, j, Color.FromArgb(color % 2 * 128, color % 4 * 33, color % 2 * 66));
+                        else picture.SetPixel(i, j, Color.Black);
+                    }
+                }
+            }
+        }
     }
 }
