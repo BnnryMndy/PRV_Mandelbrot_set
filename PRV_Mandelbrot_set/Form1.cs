@@ -13,15 +13,34 @@ namespace PRV_Mandelbrot_set
 {
     public partial class Form1 : Form
     {
-        
+        bool isCoffeeTime = false;
         Mandelbrot mandelbrot;
         Stopwatch watch = new Stopwatch();
         public Form1()
         {
             InitializeComponent();
 
-            mandelbrot = new Mandelbrot(panel1.Width, panel1.Height);
+            if (isCoffeeTime)
+            {
+                mandelbrot = new Mandelbrot(3840 * 5, 2160 * 5);
+                mandelbrot.AsyncPicture(8);
 
+                SaveFileDialog saveDialog = new SaveFileDialog();
+                saveDialog.FileName = "mandelbrot";
+                saveDialog.DefaultExt = "jpg";
+                saveDialog.Filter = "JPG images (*.jpg)|*.jpg";
+
+                if (saveDialog.ShowDialog() == DialogResult.OK)
+                {
+
+
+                    var fileName = saveDialog.FileName;
+                    if (!System.IO.Path.HasExtension(fileName) || System.IO.Path.GetExtension(fileName) != "jpg")
+                        fileName = fileName + ".jpg";
+
+                    mandelbrot.picture.Save(fileName, System.Drawing.Imaging.ImageFormat.Jpeg);
+                }
+            }
             Graphics gr = panel1.CreateGraphics();
 
             //mandelbrot.toPicture();
@@ -33,8 +52,7 @@ namespace PRV_Mandelbrot_set
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
             //Pen pen = new Pen(Color.Black, 10);
-            
-            e.Graphics.DrawImage(mandelbrot.picture, 0, 0);
+            if(mandelbrot != null) e.Graphics.DrawImage(mandelbrot.picture, 0, 0);
         }
 
         private void oneTrheadButton_Click(object sender, EventArgs e)
@@ -55,8 +73,7 @@ namespace PRV_Mandelbrot_set
             watch.Reset();
             watch.Start();
             mandelbrot.AsyncPicture(8);
-            
-            
+
             Refresh();
             watch.Stop();
             statisticLabel.Text = "сгенерировано за " + Convert.ToString(watch.ElapsedMilliseconds) + "мс"; //mandelbrot.stopwatch.ElapsedMilliseconds

@@ -17,10 +17,15 @@ namespace PRV_Mandelbrot_set
         double x, y;
         int width, height;
         int xCenter, yCenter;
-        public Bitmap picture;// = new Bitmap();
+        public Bitmap picture;
         int maxIterations = 250;
         int infinityBorder = 4;
         int color = 255;
+
+        //делаем приближение
+        double hx, hy, x_, y_, n = 0;
+        Size size;
+        double sizeArea, scaleArea;
 
         public Mandelbrot(int width, int height)
         {
@@ -30,6 +35,8 @@ namespace PRV_Mandelbrot_set
 
             xCenter = width / 3 * 2;
             yCenter = height / 2;
+            sizeArea = 3;
+            scaleArea = 3;
             toPicture();
         }
         
@@ -65,8 +72,8 @@ namespace PRV_Mandelbrot_set
 
                     Complex c = InMandelbrotSet(new Complex(relX, relY));
 
-                    if (Math.Abs(c.Magnitude) > 2) picture.SetPixel(i, j, Color.FromArgb(color % 2 * 128, color % 4 * 33, color % 2 *66));
-                    else picture.SetPixel(i, j, Color.Black);
+                    if (Math.Abs(c.Magnitude) > 2) picture.SetPixel(i, j, Color.FromArgb(color, color, color));
+                    else picture.SetPixel(i, j, Color.White);
                 }
             }
         }
@@ -108,8 +115,8 @@ namespace PRV_Mandelbrot_set
 
                     if (i < width)
                     {
-                        if (Math.Abs(c.Magnitude) > 2) picture.SetPixel(i, j, Color.FromArgb(color % 2 * 128, color % 4 * 33, color % 2 * 66));
-                        else picture.SetPixel(i, j, Color.Black);
+                        if (Math.Abs(c.Magnitude) > 2) picture.SetPixel(i, j, Color.FromArgb(color, color, color));
+                        else picture.SetPixel(i, j, Color.White);
                     }
                 }
             }
